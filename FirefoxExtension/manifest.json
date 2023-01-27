@@ -22,7 +22,7 @@
     
     "content_scripts": [
         {
-            "matches": ["https://www.youtube.com/watch*", "https://www.music.youtube.com/watch*"],
+            "matches": ["*://www.youtube.com/watch*", "*://music.youtube.com/watch*"],
             "js": ["index.js"]
         }
     ]

@@ -1,17 +1,23 @@
 require('dotenv').config();
 const express = require('express');
 const json = require('body-parser').json;
+const cors = require('cors');
 const app = express();
 const client = require('discord-rich-presence')(process.env.CLIENT_ID);
 
+app.use(cors());
 app.use(json());
 
 app.post('/discord', (req, res) => {
   
+  console.log("received request from " + req.ip)
+
   if (!req.body) return res.sendStatus(400);
 
   // get parameters from request for rpc
   var {details, state, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
+
+  console.log(req.body);
 
   if(!details) title = "Listening to ";
   if(!state) music_name = "State";
