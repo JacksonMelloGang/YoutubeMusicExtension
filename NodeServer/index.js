@@ -14,7 +14,6 @@ app.post('/discord', (req, res) => {
 
   if(req.body.details == "Listening to " || req.body.state == "Made by undefined" || req.body.time.includes("NaN")) {
     res.send("No details provided");
-    console.log(req.body);
     return;
   }
 
@@ -23,15 +22,20 @@ app.post('/discord', (req, res) => {
   if (!req.body) return res.sendStatus(400);
 
   // get parameters from request for rpc
-  var {details, state, time, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
+  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
   var date = new Date();
 
   //console.log("current time from date(): " + convertDateToSeconds(date))
   //console.log("time: " + convertToSeconds(req.body.time))
-  //console.log("end time: " + Math.round(convertDateToSeconds(date) + convertToSeconds(req.body.time)))
+  //console.log("end time: " + Math.round(convertDateToSeconds(date) + convertToSeconds(req.body.maxTime)))
+  //console.log(`${time} : ${maxTime}`);
+
+  let debutTime = new Date();
+  let endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime));
 
   // start discord rich presence
-  updateRPC(details, state, convertDateToSeconds(date), Math.round(convertDateToSeconds(date) + convertToSeconds(time)), largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+  updateRPC(details, state, debutTime, endTime, 
+    largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
   
   // return 200 saying it worked
   res.send('Discord Rich Presence Started');
@@ -44,7 +48,8 @@ async function updateRPC(details, state, startTimestamp, endTimestamp, largeImag
     details: details,
     state: state,
     startTimestamp: startTimestamp,
-    //endTimestamp: endTimestamp,
+    endTimestamp: endTimestamp,
+
     largeImageKey: largeImageKey,
     largeImageText: largeImageText,
     smallImageKey: smallImageKey,

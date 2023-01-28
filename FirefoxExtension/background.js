@@ -2,7 +2,7 @@
 // receive informations from the content script
 // and send it to the popup
 browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log("Received message");
+    console.log("Received message from content script");
 
     var infos = request.infos;
 
@@ -15,6 +15,9 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             "details": `Listening to ${infos.title}`,
             "state": `Made by ${infos.artist}`,
             "time": infos.time,
+            "maxTime": infos.max_time,
+
+            
             "largeImageKey": "shiba",
             "largeImageText": "Large Image Text",
             "smallImageKey": "small_image",
