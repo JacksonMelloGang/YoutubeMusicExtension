@@ -25,6 +25,17 @@
             "matches": ["*://www.youtube.com/watch*", "*://music.youtube.com/watch*"],
             "js": ["index.js"]
         }
-    ]
+    ],
+
+    "background": {
+        "scripts": ["jquery.js", "background.js"],
+        "persistent": true
+    },
+
+    "permissions": [
+      "tabs",
+      "activeTab",
+      "webRequest"
+      ]
 
 }

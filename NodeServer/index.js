@@ -9,38 +9,42 @@ app.use(cors());
 app.use(json());
 
 app.post('/discord', (req, res) => {
-  
   console.log("received request from " + req.ip)
+
+
+  if(req.body.details == "Listening to " || req.body.state == "Made by undefined" || req.body.time.includes("NaN")) {
+    res.send("No details provided");
+    console.log(req.body);
+    return;
+  }
+
+  console.log(req.body);
 
   if (!req.body) return res.sendStatus(400);
 
   // get parameters from request for rpc
-  var {details, state, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
+  var {details, state, time, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
+  var date = new Date();
 
-  console.log(req.body);
-
-  if(!details) title = "Listening to ";
-  if(!state) music_name = "State";
-  if(!largeImageKey) largeImageKey = "large_image";
-  if(!largeImageText) largeImageText = "Large Image Text";
-  if(!smallImageKey) smallImageKey = "small_image";
-  if(!smallImageText) smallImageText = "Small Image Text";
-  if(!instance) instance = false;
-
+  //console.log("current time from date(): " + convertDateToSeconds(date))
+  //console.log("time: " + convertToSeconds(req.body.time))
+  //console.log("end time: " + Math.round(convertDateToSeconds(date) + convertToSeconds(req.body.time)))
 
   // start discord rich presence
-  updateRPC(title, music_name, new Date(), largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+  updateRPC(details, state, convertDateToSeconds(date), Math.round(convertDateToSeconds(date) + convertToSeconds(time)), largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
   
   // return 200 saying it worked
   res.send('Discord Rich Presence Started');
 });
 
-async function updateRPC(details, state, startTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
+
+async function updateRPC(details, state, startTimestamp, endTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
 
   client.updatePresence({
     details: details,
     state: state,
     startTimestamp: startTimestamp,
+    //endTimestamp: endTimestamp,
     largeImageKey: largeImageKey,
     largeImageText: largeImageText,
     smallImageKey: smallImageKey,
@@ -49,7 +53,19 @@ async function updateRPC(details, state, startTimestamp, largeImageKey, largeIma
   });
 }
 
+function convertDateToSeconds(date) {
+  return Math.round(date.getTime() / 1000);
+}
 
+function convertToSeconds(time) {
+  let parts = time.split(':');
+  
+  let hours = parts.length > 3 ? parseInt(parts[0], 10) : 0;
+  let minutes = parts.length > 3 ? parseInt(parts[1], 10) : parseInt(parts[0], 10);
+  let seconds = parts.length > 3 ? parseInt(parts[2], 10) : parseInt(parts[1], 10);
+  
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
 
 app.listen(process.env.PORT, () => {
     console.log('App listening on port ', process.env.PORT, ' ! ');
