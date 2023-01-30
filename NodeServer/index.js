@@ -8,59 +8,43 @@ const client = require('discord-rich-presence')(process.env.CLIENT_ID);
 app.use(cors());
 app.use(json());
 
-var old_date = new Date();
-var music_title = undefined;
-var endTime = 0;
-
-
-
 app.post('/discord', (req, res) => {
-  if (!req.body) return res.sendStatus(400);
+  console.log("received request from " + req.ip)
 
-  if(Object.keys(req.body).length != 9){
-    console.error("Missing arguments in request body.");
-    return;
-  }
 
   if(req.body.details == "Listening to " || req.body.state == "Made by undefined" || req.body.time.includes("NaN")) {
     res.send("No details provided");
     return;
   }
 
-  // a little clean :)
-  console.clear();
+  console.log(req.body);
+
+  if (!req.body) return res.sendStatus(400);
 
   // get parameters from request for rpc
   var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
+  var date = new Date();
 
-  var date_ms = convertDateToSeconds(new Date()); // get date in ms
-  var debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
+  //console.log("current time from date(): " + convertDateToSeconds(date))
+  //console.log("time: " + convertToSeconds(req.body.time))
+  //console.log("end time: " + Math.round(convertDateToSeconds(date) + convertToSeconds(req.body.maxTime)))
+  //console.log(`${time} : ${maxTime}`);
 
-  // changing endtime if new song 
-  if(music_title != details.substring(13)){
-    console.info("[INFO] Updating music_title & endTime.");
+  let debutTime = new Date();
+  let endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime));
 
-    music_title = details.substring(13);
-    endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
-  }
 
-  console.log(` ${details} \n ${state} \n Current Time: ${time} (${debutTime}) \n End Time: ${maxTime} (${endTime})`);
-
-  // update discord
-  try {
-    updateRPC(details, state, debutTime, endTime, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
-  } catch (err){
-    console.error("[ERROR]: Couldn't update Discord. \n" + err)
-  }
-
-   
+  // start discord rich presence
+  updateRPC(details, state, debutTime, endTime, 
+    largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+  
   // return 200 saying it worked
   res.send('Discord Rich Presence Started');
 });
 
 
 async function updateRPC(details, state, startTimestamp, endTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
+
   client.updatePresence({
     details: details,
     state: state,
