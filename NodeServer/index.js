@@ -53,6 +53,7 @@ app.post('/discord', (req, res) => {
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
+
   
   // return 200 saying it worked
   res.send('Discord Rich Presence Started');

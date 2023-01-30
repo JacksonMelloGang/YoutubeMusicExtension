@@ -35,12 +35,12 @@ let author = getInfos().artist;
 let max_time = getInfos().max_time;
 let time = getInfos().time;
 
+
 var intervalId = setInterval(function(){
     //console.log(`Saved title: ${title} | Saved author: ${author} | Saved max time: ${max_time}`);
     console.log(`Title: ${getInfos().title} | Author: ${getInfos().artist} | Time: ${getInfos().time} | Max Time: ${getInfos().max_time}`);
 
     if(title != getInfos().title || author != getInfos().artist || max_time != getInfos().max_time || time != getInfos().time){
-
         title = getInfos().title;
         author = getInfos().artist;
         max_time = getInfos().max_time;
