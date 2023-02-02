@@ -14,35 +14,19 @@ var playing = false;
 
 
 app.post('/discord', (req, res) => {
-  console.log("received request from " + req.ip)
-
-  if(req.body.type != undefined){
-    res.send("Missing request type (ex: playing|paused|stopped)")
+  //console.log("received request from " + req.ip)
+  
+  if(req.body.type == undefined){
+    console.log("type is undefined");
+    res.send("Missing request type (ex: playing|paused|stopped)");
     return;
   }
 
-  let type = toString(req.body.type);
-
-  switch(type){
-    case "playing":
-      playSong(req, res);
-    break;
-    
-    case "paused":
-      pauseSong(req, res);
-    break;
-
-    case "stopped":
-      stopSong();
-    break;
-
-    default:
-      console.warn("[WARN] Unknow body type.");
-    break;
+  if(req.body.length == 0){
+    res.send("No body provided");
+    return;
   }
-});
 
-function playSong(req, res){
   if(req.body.details == "Listening to " || req.body.state == "Made by undefined" || req.body.time.includes("NaN")) {
     res.send("No details provided");
     return;
@@ -53,34 +37,68 @@ function playSong(req, res){
 
   // get parameters from request for rpc
   var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type} = req.body;
+  var date = new Date();
+  
+  let date_ms = convertDateToSeconds(new Date());
+  var debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
 
-  //console.log("current time from date(): " + convertDateToSeconds(date))
-  //console.log("time: " + convertToSeconds(req.body.time))
-  //console.log("end time: " + Math.round(convertDateToSeconds(date) + convertToSeconds(req.body.maxTime)))
-  //console.log(`${time} : ${maxTime}`);
+  // changing endtime if new song 
+  if(music_title != details.substring(13)){
+    console.info("[INFO] Updating music_title & endTime.");
 
-  let debutTime = new Date();
-  let endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime));
+    music_title = details.substring(13);
+    endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
+  }
 
-
+  let endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime)); 
   
   console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime})`);
+  
+  switch(type){
+    case "playing":
+      playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+    break;
+    
+    case "paused":
+      console.log("plaing")
+      pauseSong(details, state, date, date, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+    break;
+
+    case "stopped":
+      stopSong();
+    break;
+
+    default:
+      console.warn("[WARN] Unknow body type.");
+    break;
+  }
+
+  // return 200 saying it worked
+  res.send('Discord Rich Presence Started');  
+});
+
+function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+  console.log("playing");
 
   // update discord
   try {
     updateRPC(details, state, debutTime, endTime, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type);
-      
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
-  
-  // return 200 saying it worked
-  res.send('Discord Rich Presence Started');  
 }
 
-function pauseSong(req, res){
-  
+function pauseSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+  console.log("pausing");
+
+  // update discord
+  try {
+    updateRPC(details, state, debutTime, endTime, 
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type);      
+  } catch (err){
+    console.error("[ERROR]: Couldn't update Discord. \n" + err)
+  }
 }
 
 function stopSong(){
@@ -88,21 +106,21 @@ function stopSong(){
   client.disconnect();
 }
 
-async function updateRPC(details, state, startTimestamp, endTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, paused = false) {
+async function updateRPC(details, state, startTimestamp, endTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
+  console.log("[DISCORD] Updating")
+
+  
   let dict = {
     details: details,
-    state: paused ? 'Paused' : state,
+    state: state,
     startTimestamp: startTimestamp,
+    endTimestamp: endTimestamp,
 
     largeImageKey: largeImageKey,
     largeImageText: largeImageText,
     smallImageKey: smallImageKey,
     smallImageText: smallImageText,
     instance: instance,
-  }
-
-  if(!paused){
-    dict['endTimestamp'] = endTimestamp
   }
 
   client.updatePresence(dict);
