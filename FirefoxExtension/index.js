@@ -64,13 +64,14 @@ let status = getInfos().status;
 
 var intervalId = setInterval(function(){
     //console.log(`Saved title: ${title} | Saved author: ${author} | Saved max time: ${max_time}`);
-    console.log(`Title: ${getInfos().title} | Author: ${getInfos().artist} | Time: ${getInfos().time} | Max Time: ${getInfos().max_time}`);
+    console.log(`Title: ${getInfos().title} | Author: ${getInfos().artist} | Time: ${getInfos().time} | Max Time: ${getInfos().max_time} | status: ${getInfos().status}`);
 
     if(title != getInfos().title || author != getInfos().artist || max_time != getInfos().max_time || status != getInfos().status){
 
         title = getInfos().title;
         author = getInfos().artist;
         max_time = getInfos().max_time;
+        status = getInfos().status;
 
         browser.runtime.sendMessage({
             infos: getInfos()

@@ -10,7 +10,6 @@ app.use(json());
 
 var music_title = undefined;
 var endTime = 0;
-var playing = false;
 
 
 app.post('/discord', (req, res) => {
@@ -40,7 +39,7 @@ app.post('/discord', (req, res) => {
   var date = new Date();
   
   let date_ms = convertDateToSeconds(new Date());
-  var debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
+  let debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
 
   // changing endtime if new song 
   if(music_title != details.substring(13)){
@@ -50,9 +49,9 @@ app.post('/discord', (req, res) => {
     endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
   }
 
-  let endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime)); 
+  endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime)); 
   
-  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime})`);
+  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime}) \n Status: ${type} `);
   
   switch(type){
     case "playing":
@@ -60,7 +59,6 @@ app.post('/discord', (req, res) => {
     break;
     
     case "paused":
-      console.log("plaing")
       pauseSong(details, state, date, date, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
     break;
 
@@ -78,8 +76,6 @@ app.post('/discord', (req, res) => {
 });
 
 function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
-  console.log("playing");
-
   // update discord
   try {
     updateRPC(details, state, debutTime, endTime, 
@@ -90,31 +86,28 @@ function playSong(details, state, debutTime, endTime, largeImageKey, largeImageT
 }
 
 function pauseSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
-  console.log("pausing");
 
   // update discord
   try {
-    updateRPC(details, state, debutTime, endTime, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type);      
+    updateRPC(details + state, "Paused", debutTime, debutTime, 
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
+
 }
 
 function stopSong(){
-  console.log("disconnecting");
   client.disconnect();
 }
 
-async function updateRPC(details, state, startTimestamp, endTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
-  console.log("[DISCORD] Updating")
+async function updateRPC(details, state, startTimestamp, endTimestamp = null, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
 
   
   let dict = {
     details: details,
     state: state,
     startTimestamp: startTimestamp,
-    endTimestamp: endTimestamp,
 
     largeImageKey: largeImageKey,
     largeImageText: largeImageText,
@@ -122,6 +115,12 @@ async function updateRPC(details, state, startTimestamp, endTimestamp, largeImag
     smallImageText: smallImageText,
     instance: instance,
   }
+
+  if(endTimestamp != null){
+    dict['endTimestamp'] = endTimestamp
+  }
+
+
 
   client.updatePresence(dict);
 }
