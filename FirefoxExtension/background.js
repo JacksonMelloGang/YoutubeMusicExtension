@@ -6,12 +6,15 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
     var infos = request.infos;
 
+    
+
     console.log(infos);
 
     $.ajax({
         type: "POST",
         url: "http://localhost:3000/discord",
         data: JSON.stringify({
+            "type": "playing",
             "details": `Listening to ${infos.title}`,
             "state": `Made by ${infos.artist}`,
             "time": infos.time,

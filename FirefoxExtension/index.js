@@ -6,13 +6,15 @@ var getInfos = function() {
     var artist_element = document.getElementsByClassName("byline style-scope ytmusic-player-bar complex-string");
     //var time = document.querySelector('span.time-info[dir="ltr"].style-scope.ytmusic-player-bar');
     var time = document.getElementsByClassName('time-info style-scope ytmusic-player-bar')[0];
+    var pl_pa_button = document.getElementsByClassName("play-pause-button style-scope ytmusic-player-bar")[0];
 
     var infos = {
         // get infos from youtube music page
         title: title_element.length != 0 ? title_element[0].textContent : "undefined",
         artist: artist_element.length != 0 ? artist_element[0].textContent.split("•")[0] : "undefined",
         time: time.innerHTML.trim().split(" / ")[0],
-        max_time: time.innerHTML.trim().split(" / ")[1]
+        max_time: time.innerHTML.trim().split(" / ")[1],
+        statuts: ''
     };
 
     return infos;
