@@ -48,6 +48,7 @@ function postDiscordRequest(infos, type){
             "state": `Made by ${infos.artist}`,
             "time": infos.time,
             "maxTime": infos.max_time,
+            "url": infos.url,
             
             "largeImageKey": "shiba",
             "largeImageText": "Large Image Text",

@@ -34,7 +34,8 @@ var getInfos = function() {
         artist: artist_element.length != 0 ? artist_element[0].textContent.split("•")[0] : "undefined",
         time: time.innerHTML.trim().split(" / ")[0],
         max_time: time.innerHTML.trim().split(" / ")[1],
-        status: status
+        status: status,
+        url: window.location.href.split("&")[0]
     };
 
     return infos;
@@ -61,17 +62,19 @@ let title = getInfos().title;
 let author = getInfos().artist;
 let max_time = getInfos().max_time;
 let status = getInfos().status;
+let time = getInfos().time;
 
 var intervalId = setInterval(function(){
     //console.log(`Saved title: ${title} | Saved author: ${author} | Saved max time: ${max_time}`);
     console.log(`Title: ${getInfos().title} | Author: ${getInfos().artist} | Time: ${getInfos().time} | Max Time: ${getInfos().max_time} | status: ${getInfos().status}`);
 
-    if(title != getInfos().title || author != getInfos().artist || max_time != getInfos().max_time || status != getInfos().status){
+    if(title != getInfos().title || author != getInfos().artist || max_time != getInfos().max_time || status != getInfos().status, time != getInfos().time){
 
         title = getInfos().title;
         author = getInfos().artist;
         max_time = getInfos().max_time;
         status = getInfos().status;
+        time = getInfos().time;
 
         browser.runtime.sendMessage({
             infos: getInfos()
