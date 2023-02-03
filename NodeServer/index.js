@@ -12,6 +12,7 @@ var music_title = undefined;
 var endTime = 0;
 var old_type = "";
 var saved_date = new Date().getTime();
+var music_url = "";
 
 app.post('/discord', (req, res) => {
   //console.log("received request from " + req.ip)
@@ -49,16 +50,19 @@ app.post('/discord', (req, res) => {
     music_title = details.substring(13);
     old_type = type;
     saved_date = new Date().getTime();
-    endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
+    //endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
+    music_url = url;
   }
 
-  button = {label: "Listen on Youtube", url: `${url}&t=${convertToSeconds(time)}`}
+  endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
+
+  button = {label: "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
   
-  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime}) \n Status: ${type} \n URL: ${url}`);
+  console.log(` ${details} \n ${state} \n Current Time: ${time} \n End Time: ${maxTime} \n Status: ${type} \n URL: ${music_url}`);
 
   switch(type){
     case "playing":
-      timeleft = saved_date + convertToSeconds(maxTime)
+      timeleft = endTime - convertToSeconds(time);
       playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
     
