@@ -36,7 +36,7 @@ app.post('/discord', (req, res) => {
   console.clear();
 
   // get parameters from request for rpc
-  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type} = req.body;
+  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type, url} = req.body;
   var date = new Date();
   
   let date_ms = convertDateToSeconds(new Date());
@@ -52,18 +52,18 @@ app.post('/discord', (req, res) => {
     endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
   }
 
-  //endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime)); 
+  button = {label: "Listen on Youtube", url: `${url}&t=${convertToSeconds(time)}`}
   
-  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime}) \n Status: ${type} `);
+  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime}) \n Status: ${type} \n URL: ${url}`);
 
   switch(type){
     case "playing":
       timeleft = saved_date + convertToSeconds(maxTime)
-      playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+      playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
     
     case "paused":
-      pauseSong(details, state, date_ms, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+      pauseSong(details, state, date_ms, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
 
     case "stopped":
@@ -80,23 +80,23 @@ app.post('/discord', (req, res) => {
 });
 
 
-function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button){
   
   // update discord
   try {
     updateRPC(details, state, debutTime, endTime, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);      
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
 }
 
-function pauseSong(details, state, debutTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+function pauseSong(details, state, debutTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button){
 
   // update discord
   try {
     updateRPC(`${details} ${state}`, "Paused", debutTime, null, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);      
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
@@ -129,7 +129,9 @@ async function updateRPC(details, state, startTimestamp = null, endTimestamp = n
     dict['endTimestamp'] = endTimestamp;
   }
 
-
+  if(button != null){
+    dict['buttons'] = new Array(button);
+  }
 
   client.updatePresence(dict);
 }
