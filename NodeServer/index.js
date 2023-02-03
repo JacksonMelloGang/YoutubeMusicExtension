@@ -8,54 +8,130 @@ const client = require('discord-rich-presence')(process.env.CLIENT_ID);
 app.use(cors());
 app.use(json());
 
-app.post('/discord', (req, res) => {
-  console.log("received request from " + req.ip)
+var music_title = undefined;
+var endTime = 0;
+var old_type = "";
+var saved_date = new Date().getTime();
 
+app.post('/discord', (req, res) => {
+  //console.log("received request from " + req.ip)
+  
+  if(req.body.type == undefined){
+    console.log("type is undefined");
+    res.send("Missing request type (ex: playing|paused|stopped)");
+    return;
+  }
+
+  if(req.body.length == 0){
+    res.send("No body provided");
+    return;
+  }
 
   if(req.body.details == "Listening to " || req.body.state == "Made by undefined" || req.body.time.includes("NaN")) {
     res.send("No details provided");
     return;
   }
 
-  console.log(req.body);
-
-  if (!req.body) return res.sendStatus(400);
+  // a little clean aup :)
+  console.clear();
 
   // get parameters from request for rpc
-  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance} = req.body;
+  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type} = req.body;
   var date = new Date();
-
-  //console.log("current time from date(): " + convertDateToSeconds(date))
-  //console.log("time: " + convertToSeconds(req.body.time))
-  //console.log("end time: " + Math.round(convertDateToSeconds(date) + convertToSeconds(req.body.maxTime)))
-  //console.log(`${time} : ${maxTime}`);
-
-  let debutTime = new Date();
-  let endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime));
-
-  // start discord rich presence
-  updateRPC(details, state, debutTime, endTime, 
-    largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
   
+  let date_ms = convertDateToSeconds(new Date());
+  let debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
+
+  // changing endtime if new song 
+  if(music_title != details.substring(13) || old_type != type){
+    console.info("[INFO] Updating music_title & endTime.");
+
+    music_title = details.substring(13);
+    old_type = type;
+    saved_date = new Date().getTime();
+    endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
+  }
+
+  //endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime)); 
+  
+  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime}) \n Status: ${type} `);
+
+  switch(type){
+    case "playing":
+      timeleft = saved_date + convertToSeconds(maxTime)
+      playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+    break;
+    
+    case "paused":
+      pauseSong(details, state, date_ms, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+    break;
+
+    case "stopped":
+      stopSong();
+    break;
+
+    default:
+      console.warn("[WARN] Unknow body type.");
+    break;
+  }
+
   // return 200 saying it worked
-  res.send('Discord Rich Presence Started');
+  res.send('Discord Rich Presence Started');  
 });
 
 
-async function updateRPC(details, state, startTimestamp, endTimestamp, largeImageKey, largeImageText, smallImageKey, smallImageText, instance) {
+function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+  
+  // update discord
+  try {
+    updateRPC(details, state, debutTime, endTime, 
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
+  } catch (err){
+    console.error("[ERROR]: Couldn't update Discord. \n" + err)
+  }
+}
 
-  client.updatePresence({
+function pauseSong(details, state, debutTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+
+  // update discord
+  try {
+    updateRPC(`${details} ${state}`, "Paused", debutTime, null, 
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
+  } catch (err){
+    console.error("[ERROR]: Couldn't update Discord. \n" + err)
+  }
+
+}
+
+function stopSong(){
+  client.disconnect();
+}
+
+async function updateRPC(details, state, startTimestamp = null, endTimestamp = null, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button=null) {
+
+  
+  let dict = {
     details: details,
     state: state,
-    startTimestamp: startTimestamp,
-    endTimestamp: endTimestamp,
 
     largeImageKey: largeImageKey,
     largeImageText: largeImageText,
     smallImageKey: smallImageKey,
     smallImageText: smallImageText,
     instance: instance,
-  });
+  }
+
+  if(startTimestamp != null){
+    dict['startTimestamp'] = startTimestamp;
+  }
+
+  if(endTimestamp != null){
+    dict['endTimestamp'] = endTimestamp;
+  }
+
+
+
+  client.updatePresence(dict);
 }
 
 function convertDateToSeconds(date) {

@@ -6,17 +6,49 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
     var infos = request.infos;
 
-    console.log(infos);
+    switch(infos.status.toLowerCase()){
+        case "playing":
+            postDiscordRequest(infos, "playing");
+        break;
+        case "paused":
+            postDiscordRequest(infos, "paused");
+            break;
+        case "stopped":
+            postDiscordRequest(infos, "stopped");
+            break;
+        default:
+            console.log("Unknown type");
+        break;
+    }
 
-    $.ajax({
+
+
+    sendResponse({response: "Noice."});
+    return true;
+});
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === "complete") {
+      // Send a message to the content script
+      browser.tabs.sendMessage(tabId, { message: "Tab updated" });
+    }
+    
+}, {urls: ["https://music.youtube.com/*"]});
+  
+  
+function postDiscordRequest(infos, type){
+    console.log("sending request to discord");
+
+    let request = $.ajax({
         type: "POST",
         url: "http://localhost:3000/discord",
         data: JSON.stringify({
+            "type": type,
             "details": `Listening to ${infos.title}`,
             "state": `Made by ${infos.artist}`,
             "time": infos.time,
             "maxTime": infos.max_time,
-
+            "url": infos.url,
             
             "largeImageKey": "shiba",
             "largeImageText": "Large Image Text",
@@ -36,16 +68,5 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
     });
 
-    sendResponse({response: "Noice."});
-    return true;
-});
-
-browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete") {
-      // Send a message to the content script
-      browser.tabs.sendMessage(tabId, { message: "Tab updated" });
-    }
-    
-}, {urls: ["https://music.youtube.com/*"]});
-  
-  
+    return request;
+}
