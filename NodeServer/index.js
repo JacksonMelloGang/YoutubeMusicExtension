@@ -11,8 +11,15 @@ app.use(json());
 var music_title = undefined;
 var endTime = 0;
 var old_type = "";
-var saved_date = new Date().getTime();
 var music_url = "";
+var logged = true;
+
+
+if(client.on('connected', () => {
+  console.info("[INFO] Connected to Discord.");
+  logged = true;
+}));
+
 
 app.post('/discord', (req, res) => {
   //console.log("received request from " + req.ip)
@@ -37,8 +44,7 @@ app.post('/discord', (req, res) => {
   console.clear();
 
   // get parameters from request for rpc
-  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type, url} = req.body;
-  var date = new Date();
+  let {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type, url} = req.body;
   
   let date_ms = convertDateToSeconds(new Date());
   let debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
@@ -49,14 +55,13 @@ app.post('/discord', (req, res) => {
 
     music_title = details.substring(13);
     old_type = type;
-    saved_date = new Date().getTime();
     //endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
     music_url = url;
   }
 
   endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
 
-  button = {label: "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
+  let button = {label: "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
   
   console.log(` ${details} \n ${state} \n Current Time: ${time} \n End Time: ${maxTime} \n Status: ${type} \n URL: ${music_url}`);
 
@@ -112,8 +117,11 @@ function stopSong(){
 }
 
 async function updateRPC(details, state, startTimestamp = null, endTimestamp = null, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button=null) {
+  if(logged == false){
+    return;
+  }
 
-  
+
   let dict = {
     details: details,
     state: state,
