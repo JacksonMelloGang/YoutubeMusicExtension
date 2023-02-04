@@ -49,6 +49,7 @@ function postDiscordRequest(infos, type){
             "time": infos.time,
             "maxTime": infos.max_time,
             "url": infos.url,
+            "thumbnail": infos.thumbnail,
             
             "largeImageKey": "shiba",
             "largeImageText": "Large Image Text",

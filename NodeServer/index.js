@@ -44,7 +44,7 @@ app.post('/discord', (req, res) => {
   console.clear();
 
   // get parameters from request for rpc
-  let {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type, url} = req.body;
+  let {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type, url, thumbnail} = req.body;
   
   let date_ms = convertDateToSeconds(new Date());
   let debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
@@ -63,16 +63,25 @@ app.post('/discord', (req, res) => {
 
   let button = {label: "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
   
-  console.log(` ${details} \n ${state} \n Current Time: ${time} \n End Time: ${maxTime} \n Status: ${type} \n URL: ${music_url}`);
+  console.log(` ${details} \n ${state} \n Current Time: ${time} \n End Time: ${maxTime} \n Status: ${type} \n URL: ${music_url} \n `);
 
   switch(type){
     case "playing":
       timeleft = endTime - convertToSeconds(time);
-      playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
+      if(thumbnail == undefined || !thumbnail.includes("http")){
+        thumbnail = "shiba";
+      }
+
+
+      playSong(details, state, null, timeleft, thumbnail, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
     
     case "paused":
-      pauseSong(details, state, date_ms, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
+      if(thumbnail == undefined || !thumbnail.includes("http")){
+        thumbnail = "shiba";
+      }
+
+      pauseSong(details, state, date_ms, thumbnail, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
 
     case "stopped":
@@ -116,18 +125,18 @@ function stopSong(){
   client.disconnect();
 }
 
-async function updateRPC(details, state, startTimestamp = null, endTimestamp = null, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button=null) {
+async function updateRPC(details, state, startTimestamp = null, endTimestamp = null, largeImageKey = "largeImageKey", largeImageText, smallImageKey, smallImageText, instance, button=null) {
   if(logged == false){
+    console.warn("[WARN] Not connected to Discord.");
     return;
   }
-
 
   let dict = {
     details: details,
     state: state,
 
     largeImageKey: largeImageKey,
-    largeImageText: largeImageText,
+    largeImageText: details.substring(13),
     smallImageKey: smallImageKey,
     smallImageText: smallImageText,
     instance: instance,

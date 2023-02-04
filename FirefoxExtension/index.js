@@ -13,6 +13,9 @@ var getInfos = function() {
     var pl_pa_button = document.getElementsByClassName("play-pause-button style-scope ytmusic-player-bar")[0];
     var status = "stopped";
     
+    // get url of img inside a div using jquery
+    var img = document.getElementsByClassName("thumbnail style-scope ytmusic-player no-transition")[0].getElementsByTagName("img")[0].src;
+
     // stopped
     if(pl_pa_button.innerHTML.includes("M6,4l12,8L6,20V4z") && time.innerHTML.trim().split(" / ")[0] == time.innerHTML.trim().split(" / ")[1]){
         status = "stopped";
@@ -27,7 +30,7 @@ var getInfos = function() {
     if(pl_pa_button.innerHTML.includes("M9,19H7V5H9ZM17,5H15V19h2Z")){
         status = "playing";
     }
-
+    
     var infos = {
         // get infos from youtube music page
         title: title_element.length != 0 ? title_element[0].textContent : "undefined",
@@ -35,7 +38,8 @@ var getInfos = function() {
         time: time.innerHTML.trim().split(" / ")[0],
         max_time: time.innerHTML.trim().split(" / ")[1],
         status: status,
-        url: window.location.href.split("&")[0]
+        url: window.location.href.split("&")[0],
+        thumbnail: img
     };
 
     return infos;
