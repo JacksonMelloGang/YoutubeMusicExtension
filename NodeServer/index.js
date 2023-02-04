@@ -11,7 +11,15 @@ app.use(json());
 var music_title = undefined;
 var endTime = 0;
 var old_type = "";
-var saved_date = new Date().getTime();
+var music_url = "";
+var logged = true;
+
+
+if(client.on('connected', () => {
+  console.info("[INFO] Connected to Discord.");
+  logged = true;
+}));
+
 
 app.post('/discord', (req, res) => {
   //console.log("received request from " + req.ip)
@@ -36,8 +44,7 @@ app.post('/discord', (req, res) => {
   console.clear();
 
   // get parameters from request for rpc
-  var {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type} = req.body;
-  var date = new Date();
+  let {details, state, time, maxTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, type, url} = req.body;
   
   let date_ms = convertDateToSeconds(new Date());
   let debutTime = date_ms + convertToSeconds(time); // convert time from request and add it to date_ms & save it
@@ -48,22 +55,24 @@ app.post('/discord', (req, res) => {
 
     music_title = details.substring(13);
     old_type = type;
-    saved_date = new Date().getTime();
-    endTime = date_ms + convertToSeconds(maxTime); // convert time from request and add it to date_ms & save it
+    //endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
+    music_url = url;
   }
 
-  //endTime = Math.round(convertDateToSeconds(date) + convertToSeconds(maxTime)); 
+  endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
+
+  let button = {label: "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
   
-  console.log(` ${details} \n ${state} \n Current Time: ${time} (${date_ms} + ${time}) \n End Time: ${maxTime} (${date_ms} + ${maxTime}) \n Status: ${type} `);
+  console.log(` ${details} \n ${state} \n Current Time: ${time} \n End Time: ${maxTime} \n Status: ${type} \n URL: ${music_url}`);
 
   switch(type){
     case "playing":
-      timeleft = saved_date + convertToSeconds(maxTime)
-      playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+      timeleft = endTime - convertToSeconds(time);
+      playSong(details, state, null, timeleft, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
     
     case "paused":
-      pauseSong(details, state, date_ms, largeImageKey, largeImageText, smallImageKey, smallImageText, instance);
+      pauseSong(details, state, date_ms, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);
     break;
 
     case "stopped":
@@ -80,23 +89,23 @@ app.post('/discord', (req, res) => {
 });
 
 
-function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+function playSong(details, state, debutTime, endTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button){
   
   // update discord
   try {
     updateRPC(details, state, debutTime, endTime, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);      
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
 }
 
-function pauseSong(details, state, debutTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance){
+function pauseSong(details, state, debutTime, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button){
 
   // update discord
   try {
     updateRPC(`${details} ${state}`, "Paused", debutTime, null, 
-      largeImageKey, largeImageText, smallImageKey, smallImageText, instance);      
+      largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button);      
   } catch (err){
     console.error("[ERROR]: Couldn't update Discord. \n" + err)
   }
@@ -108,8 +117,11 @@ function stopSong(){
 }
 
 async function updateRPC(details, state, startTimestamp = null, endTimestamp = null, largeImageKey, largeImageText, smallImageKey, smallImageText, instance, button=null) {
+  if(logged == false){
+    return;
+  }
 
-  
+
   let dict = {
     details: details,
     state: state,
@@ -129,7 +141,9 @@ async function updateRPC(details, state, startTimestamp = null, endTimestamp = n
     dict['endTimestamp'] = endTimestamp;
   }
 
-
+  if(button != null){
+    dict['buttons'] = new Array(button);
+  }
 
   client.updatePresence(dict);
 }
