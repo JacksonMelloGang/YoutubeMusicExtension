@@ -61,7 +61,7 @@ app.post('/discord', (req, res) => {
 
   endTime = Math.round(date_ms + convertToSeconds(maxTime)); // convert time from request and add it to date_ms & save it
 
-  let button = {label: "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
+  let button = {label: url.includes("music.youtube.com") ? "Listen on Youtube Music" : "Listen on Youtube", url: `${music_url}&t=${convertToSeconds(time)}`}
   
   console.log(` ${details} \n ${state} \n Current Time: ${time} \n End Time: ${maxTime} \n Status: ${type} \n URL: ${music_url} \n `);
 
