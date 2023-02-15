@@ -33,9 +33,9 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       browser.tabs.sendMessage(tabId, { message: "Tab updated" });
     }
     
-}, {urls: ["https://music.youtube.com/*", "https://youtube.com/*"]});
-  
-  
+}, {urls: ["https://music.youtube.com/*", "https://www.youtube.com/watch?v=*"]});  
+
+
 function postDiscordRequest(infos, type){
     console.log("sending request to discord");
 

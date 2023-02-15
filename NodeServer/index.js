@@ -162,13 +162,18 @@ function convertDateToSeconds(date) {
 }
 
 function convertToSeconds(time) {
-  let parts = time.split(':');
+  var timeArray = time.split(':');
+  var totalSeconds = 0;
   
-  let hours = parts.length > 3 ? parseInt(parts[0], 10) : 0;
-  let minutes = parts.length > 3 ? parseInt(parts[1], 10) : parseInt(parts[0], 10);
-  let seconds = parts.length > 3 ? parseInt(parts[2], 10) : parseInt(parts[1], 10);
+  if(timeArray.length === 3){
+    totalSeconds += parseInt(timeArray[0]) * 3600;
+  }
+
+  totalSeconds += parseInt(timeArray[timeArray.length - 2]) * 60;
+  totalSeconds += parseInt(timeArray[timeArray.length - 1]);
   
-  return (hours * 3600) + (minutes * 60) + seconds;
+
+ return totalSeconds;
 }
 
 app.listen(process.env.PORT, () => {

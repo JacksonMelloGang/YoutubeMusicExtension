@@ -6,7 +6,7 @@
 // and send it to the background script
 var getInfos = function() {    
     var infos = {}
-    let audio_title, audio_artist, audio_time, audio_max_time,  audio_status, audio_url, audio_thumbnail
+    let audio_title, audio_artist, audio_time, audio_max_time,  audio_status, audio_url, audio_thumbnail;
 
     if(window.location.toString().includes("music.youtube.com")){
     // youtube music
@@ -48,15 +48,32 @@ var getInfos = function() {
 
     } else {
 
-        time = convertSecondstoHMS(Math.floor(document.querySelector("video").currentTime))
-        max_time = convertSecondstoHMS(Math.floor(document.querySelector("video").duration))
-        status = document.querySelector("video").paused ? "paused" : "playing"
+        let time = convertSecondstoHMS(Math.floor(document.querySelector("video").currentTime))
+        let max_time = convertSecondstoHMS(Math.floor(document.querySelector("video").duration))
+        let status = document.querySelector("video").paused ? "paused" : "playing"
 
-        audio_title = document.getElementById("above-the-fold").querySelector("#title").querySelector("h1").textContent
-        audio_artist = document.getElementById("upload-info").querySelector("a").text
+        // title
+        if(document.getElementById("above-the-fold").querySelector("#title") != null){
+            audio_title =  document.getElementById("above-the-fold").querySelector("#title").querySelector("h1").textContent.trim()
+        } else {
+            audio_title = "undefined"
+        }
+
+        
+        // artist
+        if(document.getElementById("upload-info").querySelector("a") != null){            
+            audio_artist = document.getElementById("upload-info").querySelector("a").text
+        } else {
+            audio_artist = "undefined"
+        }
+
+
+
         audio_time = time
         audio_max_time = max_time
+        audio_status = status
         audio_url = window.location.href.split("&")[0] 
+        audio_thumbnail = "shiba"
 
     }
 
@@ -71,8 +88,6 @@ var getInfos = function() {
         url: audio_url,
         thumbnail: audio_thumbnail
     };    
-
-
 
 
     return infos;
